@@ -35,7 +35,10 @@ def armar_nivel(colores, contenidos_parciales):
             conteo_colores[value] += 1
         return all(conteo_colores[color] <= 4 for color in colores)
 
-    restricciones.append((variables, no_mas_de_cuatro_segmentos))
+    for frasco1, frasco2, frasco3, frasco4, frasco5 in combinations(variables, 5):
+        restricciones.append(((frasco1, frasco2, frasco3, frasco4, frasco5), no_mas_de_cuatro_segmentos))
+
+
 
     # Ningún frasco debe comenzar resuelto. Es decir, ningún frasco debe tener 4 segmentos del mismo color.
     def no_frasco_resuelto(variables, values):
@@ -48,13 +51,17 @@ def armar_nivel(colores, contenidos_parciales):
     # Ningún color puede comenzar con todos sus segmentos en el fondo de frascos, porque se trataría de una situación excesivamente difícil de resolver.
     def no_color_completo_en_fondo(variables, values):
         conteo_fondo = {color: 0 for color in colores}
-        for frasco in range(cant_frascos):
-            frasco_vars = [(frasco, pos) for pos in range(4)]
-            color_frasco = values[frasco * 4]
-            conteo_fondo[color_frasco] += 1
+        for value in values:
+            conteo_fondo[value] += 1
         return all(conteo_fondo[color] < 4 for color in colores)
 
-    restricciones.append((variables, no_color_completo_en_fondo))
+    frasco_fondo = []
+
+    for frasco in range(cant_frascos):
+        frasco_vars = [(frasco, pos) for pos in range(4)]
+        frasco_fondo.append(frasco_vars[0])
+
+    restricciones.append((frasco_fondo, no_color_completo_en_fondo))
 
     # Si dos frascos son adyacentes, deben compartir al menos un color.
     def frascos_adyacentes_comparten_color(variables, values):
@@ -92,9 +99,9 @@ def armar_nivel(colores, contenidos_parciales):
     #return dominios
     # Crear y resolver el problema
     problema = CspProblem(variables, dominios, restricciones)
-    solucion = min_conflicts(problema, iterations_limit=47000)
-    #solucion = backtrack(problema, variable_heuristic=MOST_CONSTRAINED_VARIABLE,
-                         #value_heuristic=LEAST_CONSTRAINING_VALUE)
+    #solucion = min_conflicts(problema, iterations_limit=47000)
+    solucion = backtrack(problema, variable_heuristic=MOST_CONSTRAINED_VARIABLE,
+                         value_heuristic=LEAST_CONSTRAINING_VALUE)
 
     # Convertir la solución en el formato esperado
     resultado = []
